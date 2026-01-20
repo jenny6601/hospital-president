@@ -1,0 +1,666 @@
+import React, { useState, useMemo, useRef } from 'react';
+import { Search, MapPin, User, Stethoscope, Building, Filter, Upload, X } from 'lucide-react';
+
+// 完整 43 筆醫院資料 (已內建)
+const FULL_DATA = [
+  {
+    "city": "台北市",
+    "level": "醫學中心",
+    "name": "國立臺灣大學醫學院附設醫院",
+    "dean": "余忠仁",
+    "dept": "胸腔內科",
+    "district": "中正區",
+    "img": "https://i.ibb.co/mVFTNYz9/image.png"
+  },
+  {
+    "city": "台北市",
+    "level": "醫學中心",
+    "name": "臺北榮民總醫院",
+    "dean": "陳威明",
+    "dept": "骨科",
+    "district": "北投區",
+    "img": "https://i.ibb.co/Wv82TMfr/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "醫學中心",
+    "name": "三軍總醫院附設民眾診療服務處",
+    "dean": "蔡宜廷",
+    "dept": "心臟外科",
+    "district": "內湖區",
+    "img": "https://i.ibb.co/zhC6rdWw/image.jpg"
+  },
+  {
+    "city": "基隆市",
+    "level": "區域醫院",
+    "name": "三軍總醫院基隆分院",
+    "dean": "陳元皓",
+    "dept": "神經外科",
+    "district": "中正區",
+    "img": "https://i.ibb.co/fzV0mGsm/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "區域醫院",
+    "name": "三軍總醫院松山分院",
+    "dean": "許育瑞",
+    "dept": "腎臟科",
+    "district": "松山區",
+    "img": "https://i.ibb.co/V0LW69Vw/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "醫學中心",
+    "name": "馬偕紀念醫院",
+    "dean": "張文瀚",
+    "dept": "急診科",
+    "district": "中山區",
+    "img": "https://i.ibb.co/4RB6jrPw/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "區域醫院",
+    "name": "淡水馬偕紀念醫院",
+    "dean": "洪大川",
+    "dept": "心臟科",
+    "district": "淡水區",
+    "img": "https://i.ibb.co/1fYm2wdv/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "醫學中心",
+    "name": "國泰綜合醫院",
+    "dean": "簡志誠",
+    "dept": "麻醉疼痛",
+    "district": "大安區",
+    "img": "https://i.ibb.co/p6WC1TtW/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "區域醫院",
+    "name": "汐止國泰綜合醫院",
+    "dean": "林慶齡",
+    "dept": "代謝科",
+    "district": "汐止區",
+    "img": "https://i.ibb.co/WNHRrW1c/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "醫學中心",
+    "name": "新光吳火獅紀念醫院",
+    "dean": "侯勝茂",
+    "dept": "骨科",
+    "district": "士林區",
+    "img": "https://i.ibb.co/p6kzF3zP/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "醫學中心",
+    "name": "臺北醫學大學附設醫院",
+    "dean": "施俊明",
+    "dept": "心臟科",
+    "district": "信義區",
+    "img": "https://i.ibb.co/DSMRwcn/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "醫學中心",
+    "name": "臺北市立萬芳醫院",
+    "dean": "劉燦宏",
+    "dept": "復健",
+    "district": "文山區",
+    "img": "https://i.ibb.co/VYgGM0LH/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "區域醫院",
+    "name": "和信治癌中心醫院",
+    "dean": "黃達夫",
+    "dept": "腫瘤",
+    "district": "關渡",
+    "img": "https://i.ibb.co/LhdyYyjx/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "區域醫院",
+    "name": "臺北市立聯合醫院",
+    "dean": "王智弘",
+    "dept": "耳鼻喉科",
+    "district": "各院區",
+    "img": "https://i.ibb.co/TMX2C2yw/image.png"
+  },
+  {
+    "city": "台北市",
+    "level": "區域醫院",
+    "name": "市立醫院中興院區",
+    "dean": "蔡景耀",
+    "dept": "眼科",
+    "district": "",
+    "img": "https://i.ibb.co/qF5V6yjg/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "區域醫院",
+    "name": "市立醫院陽明院區",
+    "dean": "邱逸淳",
+    "dept": "泌尿",
+    "district": "",
+    "img": "https://i.ibb.co/QjTKGL6s/image.png"
+  },
+  {
+    "city": "台北市",
+    "level": "區域醫院",
+    "name": "市立醫院和平婦幼院區",
+    "dean": "許家禎",
+    "dept": "ENT",
+    "district": "",
+    "img": "https://i.ibb.co/KzVQw0Y7/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "區域醫院",
+    "name": "市立醫院忠孝院區",
+    "dean": "陳修聖",
+    "dept": "泌尿",
+    "district": "",
+    "img": "https://i.ibb.co/Q3Q3r1zk/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "區域醫院",
+    "name": "市立醫院仁愛院區",
+    "dean": "王懋哲",
+    "dept": "ENT",
+    "district": "",
+    "img": "https://i.ibb.co/MxsMXxVC/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "區域醫院",
+    "name": "振興醫院",
+    "dean": "魏崢",
+    "dept": "心臟外科",
+    "district": "北投區",
+    "img": "https://i.ibb.co/FkVX7Vqw/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "區域醫院",
+    "name": "臺北長庚紀念醫院",
+    "dean": "黃集仁",
+    "dept": "急診科",
+    "district": "松山區",
+    "img": "https://i.ibb.co/r2ZdBm1c/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "區域醫院",
+    "name": "臺北醫學大學臺北癌症醫院",
+    "dean": "張俊彥",
+    "dept": "血腫科",
+    "district": "信義區",
+    "img": "https://i.ibb.co/whSZypZ0/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "區域醫院",
+    "name": "康寧醫院",
+    "dean": "尹長生",
+    "dept": "婦產科",
+    "district": "內湖區",
+    "img": "https://i.ibb.co/TBDwp0nK/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "區域醫院",
+    "name": "西園醫院",
+    "dean": "林澤安",
+    "dept": "內科",
+    "district": "萬華區",
+    "img": "https://i.ibb.co/HWq3hmV/image.jpg"
+  },
+  {
+    "city": "台北市",
+    "level": "區域醫院",
+    "name": "台安醫院",
+    "dean": "陳欣宏",
+    "dept": "泌尿",
+    "district": "大安區",
+    "img": "https://i.ibb.co/1YBVxp5v/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "醫學中心",
+    "name": "亞東紀念醫院",
+    "dean": "邱冠明",
+    "dept": "心臟外科",
+    "district": "板橋區",
+    "img": "https://i.ibb.co/b5QrdWFv/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "醫學中心",
+    "name": "臺北慈濟醫院",
+    "dean": "趙有誠",
+    "dept": "腸胃科",
+    "district": "新店區",
+    "img": "https://i.ibb.co/3mr2tmHS/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "醫學中心",
+    "name": "衛生福利部雙和醫院",
+    "dean": "李明哲",
+    "dept": "心臟外科",
+    "district": "中和區",
+    "img": "https://i.ibb.co/MkXYsxtD/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "醫學中心",
+    "name": "輔仁大學附設醫院",
+    "dean": "黃瑞仁",
+    "dept": "心臟科",
+    "district": "泰山區",
+    "img": "https://i.ibb.co/MDypzk2Z/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "區域醫院",
+    "name": "恩主公醫院",
+    "dean": "楊純豪",
+    "dept": "大腸外科",
+    "district": "三峽區",
+    "img": "https://i.ibb.co/5QRdCGK/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "區域醫院",
+    "name": "衛生福利部臺北醫院",
+    "dean": "鄭舜平",
+    "dept": "復健",
+    "district": "新莊區",
+    "img": "https://i.ibb.co/BHqTvv9Z/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "區域醫院",
+    "name": "新北市立聯合醫院",
+    "dean": "項正川",
+    "dept": "腎臟",
+    "district": "三重/板橋",
+    "img": "https://i.ibb.co/nq24rbHz/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "區域醫院",
+    "name": "耕莘醫院總院長",
+    "dean": "林恆毅",
+    "dept": "胸腔內科",
+    "district": "",
+    "img": "https://i.ibb.co/6cQk2MDX/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "區域醫院",
+    "name": "新店耕莘醫院",
+    "dean": "鄒繼群",
+    "dept": "耳鼻喉科",
+    "district": "新店",
+    "img": "https://i.ibb.co/zyTm6dd/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "區域醫院",
+    "name": "永和耕莘醫院",
+    "dean": "趙嘉倫",
+    "dept": "心臟科",
+    "district": "永和區",
+    "img": "https://i.ibb.co/VWmT0FVx/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "區域醫院",
+    "name": "安康耕莘醫院",
+    "dean": "周少鈞",
+    "dept": "一般外科",
+    "district": "安康",
+    "img": "https://i.ibb.co/hFfK6wHC/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "區域醫院",
+    "name": "土城長庚",
+    "dean": "賴旗俊",
+    "dept": "眼科",
+    "district": "土城",
+    "img": "https://i.ibb.co/N6R9XT1M/image.jpg"
+  },
+  {
+    "city": "新北市",
+    "level": "區域醫院",
+    "name": "八里療養院",
+    "dean": "李新民",
+    "dept": "精神科",
+    "district": "八里",
+    "img": "https://i.ibb.co/G4VKJLjm/image.png"
+  },
+  {
+    "city": "基隆市",
+    "level": "區域醫院",
+    "name": "基隆長庚紀念醫院",
+    "dean": "吳俊德",
+    "dept": "泌尿科",
+    "district": "安樂區",
+    "img": "https://i.ibb.co/STHyHnj/image.jpg"
+  },
+  {
+    "city": "基隆市",
+    "level": "區域醫院",
+    "name": "衛生福利部基隆醫院",
+    "dean": "林三齊",
+    "dept": "腎臟",
+    "district": "信義區",
+    "img": "https://i.ibb.co/S7QFGPK0/image.jpg"
+  },
+  {
+    "city": "宜蘭縣",
+    "level": "區域醫院",
+    "name": "國立陽明交通大學附設醫院",
+    "dean": "黃志賢",
+    "dept": "泌尿科",
+    "district": "宜蘭市",
+    "img": "https://i.ibb.co/qFVQmNYb/image.jpg"
+  },
+  {
+    "city": "宜蘭縣",
+    "level": "區域醫院",
+    "name": "羅東博愛醫院",
+    "dean": "王文斌",
+    "dept": "神經外科",
+    "district": "羅東鎮",
+    "img": "https://i.ibb.co/g1MDnxZ/image.jpg"
+  },
+  {
+    "city": "宜蘭縣",
+    "level": "區域醫院",
+    "name": "羅東聖母醫院",
+    "dean": "馬漢光",
+    "dept": "胸腔內科",
+    "district": "羅東鎮",
+    "img": "https://i.ibb.co/xSnSrym5/image.jpg"
+  }
+];
+
+const HospitalCard = ({ data }) => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-200 flex flex-col h-full group animate-in fade-in zoom-in duration-500">
+      <div className="bg-slate-800 p-3 md:p-4 text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[5rem]">
+        <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
+        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 duration-700"></div>
+        
+        <h3 className="text-lg md:text-xl font-bold text-white tracking-wide relative z-10 group-hover:text-blue-200 transition-colors line-clamp-2 w-full px-2 leading-tight">
+          {data.name}
+        </h3>
+        <span className="inline-block mt-2 px-2.5 py-0.5 bg-slate-700 text-blue-200 text-[10px] md:text-xs rounded-full border border-slate-600">
+          {data.level}
+        </span>
+      </div>
+
+      <div className="relative h-48 md:h-52 w-full bg-slate-100 overflow-hidden">
+        <img 
+          src={data.img} 
+          alt={data.dean}
+          className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+          onError={(e) => {
+            e.target.src = "https://placehold.co/600x400?text=No+Image";
+            e.target.onerror = null;
+          }}
+        />
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/90 via-slate-900/50 to-transparent p-3 pt-10">
+          <p className="text-white text-xs md:text-sm font-medium flex items-center gap-1.5 drop-shadow-md">
+            <MapPin size={14} className="text-blue-400 shrink-0" />
+            <span>{data.city} {data.district}</span>
+          </p>
+        </div>
+      </div>
+
+      <div className="p-4 flex-grow bg-slate-50 flex flex-col justify-center">
+        <div className="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200">
+          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-sm border border-slate-100 shrink-0 group-hover:scale-110 transition-transform duration-300">
+             <User size={24} />
+          </div>
+          <div>
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-0.5">現任院長</p>
+            <h4 className="text-lg font-bold text-slate-800">{data.dean}</h4>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 p-2.5 bg-white rounded-lg border border-slate-200 shadow-sm hover:border-blue-300 transition-colors group-hover:shadow-md">
+            <Stethoscope size={18} className="text-emerald-600 shrink-0" />
+            <div className="flex flex-col">
+              <span className="text-[10px] text-slate-400 font-medium">專長科別</span>
+              <span className="text-sm font-medium text-slate-700 line-clamp-1">{data.dept}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function App() {
+  const [data, setData] = useState(FULL_DATA);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCity, setSelectedCity] = useState("全部");
+  const [selectedLevel, setSelectedLevel] = useState("全部");
+  const fileInputRef = useRef(null);
+
+  const cities = ["全部", ...new Set(data.map(d => d.city))];
+  const levels = ["全部", ...new Set(data.map(d => d.level))];
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target.result;
+      const lines = text.split('\n');
+      const parsedData = [];
+      let startParsing = false;
+
+      lines.forEach(line => {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) return;
+        const columns = trimmedLine.split(',');
+        
+        if (trimmedLine.includes('縣市') && trimmedLine.includes('醫院名稱')) {
+          startParsing = true;
+          return;
+        }
+
+        if (!startParsing) {
+            const potentialCity = columns[0];
+            if (['台北市', '新北市', '基隆市', '桃園市', '宜蘭縣', '新竹市', '新竹縣'].some(c => potentialCity.includes(c))) {
+                startParsing = true;
+            } else {
+                return;
+            }
+        }
+
+        if (columns.length >= 7) {
+          parsedData.push({
+            city: columns[0].trim(),
+            level: columns[1].trim(),
+            name: columns[2].trim(),
+            dean: columns[3].trim(),
+            dept: columns[4].trim(),
+            district: columns[5].trim(),
+            img: columns[6].trim()
+          });
+        }
+      });
+
+      if (parsedData.length > 0) {
+        setData(parsedData);
+        setSelectedCity("全部");
+        setSelectedLevel("全部");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        alert(`成功更新 ${parsedData.length} 筆資料！`);
+      } else {
+        alert("無法解析資料，請確認 CSV 格式是否正確。");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const filteredData = useMemo(() => {
+    return data.filter(item => {
+      const matchesSearch = 
+        item.name.includes(searchTerm) || 
+        item.dean.includes(searchTerm) ||
+        item.district.includes(searchTerm);
+      const matchesCity = selectedCity === "全部" || item.city === selectedCity;
+      const matchesLevel = selectedLevel === "全部" || item.level === selectedLevel;
+
+      return matchesSearch && matchesCity && matchesLevel;
+    });
+  }, [data, searchTerm, selectedCity, selectedLevel]);
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileUpload} 
+        accept=".csv" 
+        className="hidden" 
+      />
+
+      <header className="bg-slate-900 text-white shadow-xl sticky top-0 z-50 border-b border-slate-700">
+        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            
+            <div className="flex-shrink-0">
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight flex items-center gap-3">
+                <div className="p-1.5 bg-blue-600 rounded-lg shadow-lg shadow-blue-900/50">
+                  <Building className="text-white" size={20} />
+                </div>
+                <span>北區醫院院長名錄</span>
+              </h1>
+              <div className="flex items-center gap-2 mt-2 ml-1 text-slate-400 text-xs md:text-sm">
+                <span className="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-full text-emerald-300 flex items-center gap-1">
+                   <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                   完整資料庫
+                </span>
+                <span className="text-slate-400">
+                  共收錄 {filteredData.length} 間
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                <div className="relative w-full md:w-64 group">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-blue-400 transition-colors" size={16} />
+                    <input 
+                      type="text"
+                      placeholder="搜尋醫院、院長..."
+                      className="w-full pl-9 pr-4 py-2.5 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    {searchTerm && (
+                      <button 
+                        onClick={() => setSearchTerm("")}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-white"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                </div>
+
+                <button 
+                  onClick={() => fileInputRef.current.click()}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-lg transition-all shadow-md active:scale-95 text-sm font-medium whitespace-nowrap border border-slate-600"
+                  title="若有新版 CSV 可由此更新"
+                >
+                    <Upload size={16} />
+                    <span>更新資料</span>
+                </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-800/95 backdrop-blur-md border-t border-white/5 shadow-md">
+           <div className="max-w-7xl mx-auto px-4 py-2 overflow-x-auto no-scrollbar flex items-center gap-3">
+             <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium whitespace-nowrap">
+               <Filter size={14} />
+               篩選
+             </div>
+             
+             <select 
+               className="bg-slate-700 text-white border border-slate-600 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 py-1.5 px-3 outline-none hover:bg-slate-600 transition-colors cursor-pointer min-w-[6rem]"
+               value={selectedCity}
+               onChange={(e) => setSelectedCity(e.target.value)}
+             >
+               {cities.map(city => (
+                 <option key={city} value={city}>{city === "全部" ? "所有縣市" : city}</option>
+               ))}
+             </select>
+
+             <select 
+               className="bg-slate-700 text-white border border-slate-600 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 py-1.5 px-3 outline-none hover:bg-slate-600 transition-colors cursor-pointer min-w-[6rem]"
+               value={selectedLevel}
+               onChange={(e) => setSelectedLevel(e.target.value)}
+             >
+               {levels.map(level => (
+                 <option key={level} value={level}>{level === "全部" ? "所有等級" : level}</option>
+               ))}
+             </select>
+             
+             {(selectedCity !== "全部" || selectedLevel !== "全部") && (
+                <button 
+                  onClick={() => {
+                    setSelectedCity("全部");
+                    setSelectedLevel("全部");
+                  }}
+                  className="text-xs text-blue-300 hover:text-white hover:underline whitespace-nowrap px-2"
+                >
+                  重置
+                </button>
+             )}
+           </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        {filteredData.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+            {filteredData.map((item, index) => (
+              <HospitalCard key={index} data={item} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400 text-center">
+            <div className="bg-slate-200 p-5 rounded-full mb-4">
+               <Building size={40} className="text-slate-400" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-600 mb-2">沒有找到符合的結果</h3>
+            <button 
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedCity("全部");
+                setSelectedLevel("全部");
+              }}
+              className="mt-2 text-blue-600 hover:underline text-sm"
+            >
+              清除所有篩選條件
+            </button>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
