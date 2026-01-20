@@ -395,19 +395,22 @@ const FULL_DATA = [
 const HospitalCard = ({ data }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-200 flex flex-col h-full group animate-in fade-in zoom-in duration-500">
-      <div className="bg-slate-800 p-3 md:p-4 text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[5rem]">
+      {/* 調整：手機版 header 高度與 padding 縮小，節省空間 */}
+      <div className="bg-slate-800 p-3 md:p-4 text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[4.5rem] md:min-h-[5rem]">
         <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
         <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 duration-700"></div>
         
-        <h3 className="text-lg md:text-xl font-bold text-white tracking-wide relative z-10 group-hover:text-blue-200 transition-colors line-clamp-2 w-full px-2 leading-tight">
+        {/* 調整：手機版字體調整為 text-base，避免過大 */}
+        <h3 className="text-base md:text-xl font-bold text-white tracking-wide relative z-10 group-hover:text-blue-200 transition-colors line-clamp-2 w-full px-1 leading-tight">
           {data.name}
         </h3>
-        <span className="inline-block mt-2 px-2.5 py-0.5 bg-slate-700 text-blue-200 text-[10px] md:text-xs rounded-full border border-slate-600">
+        <span className="inline-block mt-1.5 md:mt-2 px-2.5 py-0.5 bg-slate-700 text-blue-200 text-[10px] md:text-xs rounded-full border border-slate-600">
           {data.level}
         </span>
       </div>
 
-      <div className="relative h-48 md:h-52 w-full bg-slate-100 overflow-hidden">
+      {/* 調整：手機版圖片高度縮減為 h-40，增加內容可見度 */}
+      <div className="relative h-40 md:h-52 w-full bg-slate-100 overflow-hidden">
         <img 
           src={data.img} 
           alt={data.dean}
@@ -417,7 +420,7 @@ const HospitalCard = ({ data }) => {
             e.target.onerror = null;
           }}
         />
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/90 via-slate-900/50 to-transparent p-3 pt-10">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/90 via-slate-900/50 to-transparent p-2 md:p-3 pt-8 md:pt-10">
           <p className="text-white text-xs md:text-sm font-medium flex items-center gap-1.5 drop-shadow-md">
             <MapPin size={14} className="text-blue-400 shrink-0" />
             <span>{data.city} {data.district}</span>
@@ -425,20 +428,20 @@ const HospitalCard = ({ data }) => {
         </div>
       </div>
 
-      <div className="p-4 flex-grow bg-slate-50 flex flex-col justify-center">
-        <div className="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200">
-          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-sm border border-slate-100 shrink-0 group-hover:scale-110 transition-transform duration-300">
-             <User size={24} />
+      <div className="p-3 md:p-4 flex-grow bg-slate-50 flex flex-col justify-center">
+        <div className="flex items-center gap-3 md:gap-4 mb-3 md:mb-4 pb-3 md:pb-4 border-b border-slate-200">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-sm border border-slate-100 shrink-0 group-hover:scale-110 transition-transform duration-300">
+             <User size={20} className="md:w-6 md:h-6" />
           </div>
           <div>
             <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-0.5">現任院長</p>
-            <h4 className="text-lg font-bold text-slate-800">{data.dean}</h4>
+            <h4 className="text-base md:text-lg font-bold text-slate-800">{data.dean}</h4>
           </div>
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center gap-3 p-2.5 bg-white rounded-lg border border-slate-200 shadow-sm hover:border-blue-300 transition-colors group-hover:shadow-md">
-            <Stethoscope size={18} className="text-emerald-600 shrink-0" />
+          <div className="flex items-center gap-3 p-2 md:p-2.5 bg-white rounded-lg border border-slate-200 shadow-sm hover:border-blue-300 transition-colors group-hover:shadow-md">
+            <Stethoscope size={16} className="text-emerald-600 shrink-0 md:w-[18px] md:h-[18px]" />
             <div className="flex flex-col">
               <span className="text-[10px] text-slate-400 font-medium">專長科別</span>
               <span className="text-sm font-medium text-slate-700 line-clamp-1">{data.dept}</span>
@@ -531,6 +534,15 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
+      <style>{`
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
       <input 
         type="file" 
         ref={fileInputRef} 
@@ -540,34 +552,34 @@ export default function App() {
       />
 
       <header className="bg-slate-900 text-white shadow-xl sticky top-0 z-50 border-b border-slate-700">
-        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-3 md:px-4 py-2 md:py-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4">
             
             <div className="flex-shrink-0">
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight flex items-center gap-3">
+              <h1 className="text-lg md:text-2xl font-bold tracking-tight flex items-center gap-2 md:gap-3">
                 <div className="p-1.5 bg-blue-600 rounded-lg shadow-lg shadow-blue-900/50">
-                  <Building className="text-white" size={20} />
+                  <Building className="text-white" size={18} />
                 </div>
                 <span>北區醫院院長名錄</span>
               </h1>
-              <div className="flex items-center gap-2 mt-2 ml-1 text-slate-400 text-xs md:text-sm">
+              <div className="flex items-center gap-2 mt-1 md:mt-2 ml-1 text-slate-400 text-xs md:text-sm">
                 <span className="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-full text-emerald-300 flex items-center gap-1">
-                   <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-                   完整資料庫
+                   <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                   完整資料
                 </span>
                 <span className="text-slate-400">
-                  共收錄 {filteredData.length} 間
+                   {filteredData.length} 間
                 </span>
               </div>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <div className="flex gap-2 w-full md:w-auto">
                 <div className="relative w-full md:w-64 group">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-blue-400 transition-colors" size={16} />
                     <input 
                       type="text"
                       placeholder="搜尋醫院、院長..."
-                      className="w-full pl-9 pr-4 py-2.5 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                      className="w-full pl-9 pr-4 py-2 md:py-2.5 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -583,25 +595,25 @@ export default function App() {
 
                 <button 
                   onClick={() => fileInputRef.current.click()}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-lg transition-all shadow-md active:scale-95 text-sm font-medium whitespace-nowrap border border-slate-600"
+                  className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 md:py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-lg transition-all shadow-md active:scale-95 text-sm font-medium whitespace-nowrap border border-slate-600"
                   title="若有新版 CSV 可由此更新"
                 >
                     <Upload size={16} />
-                    <span>更新資料</span>
+                    <span className="hidden sm:inline">更新資料</span>
                 </button>
             </div>
           </div>
         </div>
 
         <div className="bg-slate-800/95 backdrop-blur-md border-t border-white/5 shadow-md">
-           <div className="max-w-7xl mx-auto px-4 py-2 overflow-x-auto no-scrollbar flex items-center gap-3">
+           <div className="max-w-7xl mx-auto px-3 md:px-4 py-2 overflow-x-auto no-scrollbar flex items-center gap-2 md:gap-3">
              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium whitespace-nowrap">
                <Filter size={14} />
                篩選
              </div>
              
              <select 
-               className="bg-slate-700 text-white border border-slate-600 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 py-1.5 px-3 outline-none hover:bg-slate-600 transition-colors cursor-pointer min-w-[6rem]"
+               className="bg-slate-700 text-white border border-slate-600 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 py-1.5 px-2 md:px-3 outline-none hover:bg-slate-600 transition-colors cursor-pointer min-w-[5rem] md:min-w-[6rem]"
                value={selectedCity}
                onChange={(e) => setSelectedCity(e.target.value)}
              >
@@ -611,7 +623,7 @@ export default function App() {
              </select>
 
              <select 
-               className="bg-slate-700 text-white border border-slate-600 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 py-1.5 px-3 outline-none hover:bg-slate-600 transition-colors cursor-pointer min-w-[6rem]"
+               className="bg-slate-700 text-white border border-slate-600 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 py-1.5 px-2 md:px-3 outline-none hover:bg-slate-600 transition-colors cursor-pointer min-w-[5rem] md:min-w-[6rem]"
                value={selectedLevel}
                onChange={(e) => setSelectedLevel(e.target.value)}
              >
@@ -635,7 +647,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-6">
         {filteredData.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {filteredData.map((item, index) => (
