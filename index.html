@@ -1,678 +1,247 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { Search, MapPin, User, Stethoscope, Building, Filter, Upload, X } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>北區醫院院長名錄</title>
+    <meta name="description" content="查詢北區各大醫院院長、科別與行政區資料">
 
-// 完整 43 筆醫院資料 (已內建)
-const FULL_DATA = [
-  {
-    "city": "台北市",
-    "level": "醫學中心",
-    "name": "國立臺灣大學醫學院附設醫院",
-    "dean": "余忠仁",
-    "dept": "胸腔內科",
-    "district": "中正區",
-    "img": "https://i.ibb.co/mVFTNYz9/image.png"
-  },
-  {
-    "city": "台北市",
-    "level": "醫學中心",
-    "name": "臺北榮民總醫院",
-    "dean": "陳威明",
-    "dept": "骨科",
-    "district": "北投區",
-    "img": "https://i.ibb.co/Wv82TMfr/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "醫學中心",
-    "name": "三軍總醫院附設民眾診療服務處",
-    "dean": "蔡宜廷",
-    "dept": "心臟外科",
-    "district": "內湖區",
-    "img": "https://i.ibb.co/zhC6rdWw/image.jpg"
-  },
-  {
-    "city": "基隆市",
-    "level": "區域醫院",
-    "name": "三軍總醫院基隆分院",
-    "dean": "陳元皓",
-    "dept": "神經外科",
-    "district": "中正區",
-    "img": "https://i.ibb.co/fzV0mGsm/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "區域醫院",
-    "name": "三軍總醫院松山分院",
-    "dean": "許育瑞",
-    "dept": "腎臟科",
-    "district": "松山區",
-    "img": "https://i.ibb.co/V0LW69Vw/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "醫學中心",
-    "name": "馬偕紀念醫院",
-    "dean": "張文瀚",
-    "dept": "急診科",
-    "district": "中山區",
-    "img": "https://i.ibb.co/4RB6jrPw/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "區域醫院",
-    "name": "淡水馬偕紀念醫院",
-    "dean": "洪大川",
-    "dept": "心臟科",
-    "district": "淡水區",
-    "img": "https://i.ibb.co/1fYm2wdv/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "醫學中心",
-    "name": "國泰綜合醫院",
-    "dean": "簡志誠",
-    "dept": "麻醉疼痛",
-    "district": "大安區",
-    "img": "https://i.ibb.co/p6WC1TtW/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "區域醫院",
-    "name": "汐止國泰綜合醫院",
-    "dean": "林慶齡",
-    "dept": "代謝科",
-    "district": "汐止區",
-    "img": "https://i.ibb.co/WNHRrW1c/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "醫學中心",
-    "name": "新光吳火獅紀念醫院",
-    "dean": "侯勝茂",
-    "dept": "骨科",
-    "district": "士林區",
-    "img": "https://i.ibb.co/p6kzF3zP/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "醫學中心",
-    "name": "臺北醫學大學附設醫院",
-    "dean": "施俊明",
-    "dept": "心臟科",
-    "district": "信義區",
-    "img": "https://i.ibb.co/DSMRwcn/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "醫學中心",
-    "name": "臺北市立萬芳醫院",
-    "dean": "劉燦宏",
-    "dept": "復健",
-    "district": "文山區",
-    "img": "https://i.ibb.co/VYgGM0LH/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "區域醫院",
-    "name": "和信治癌中心醫院",
-    "dean": "黃達夫",
-    "dept": "腫瘤",
-    "district": "關渡",
-    "img": "https://i.ibb.co/LhdyYyjx/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "區域醫院",
-    "name": "臺北市立聯合醫院",
-    "dean": "王智弘",
-    "dept": "耳鼻喉科",
-    "district": "各院區",
-    "img": "https://i.ibb.co/TMX2C2yw/image.png"
-  },
-  {
-    "city": "台北市",
-    "level": "區域醫院",
-    "name": "市立醫院中興院區",
-    "dean": "蔡景耀",
-    "dept": "眼科",
-    "district": "",
-    "img": "https://i.ibb.co/qF5V6yjg/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "區域醫院",
-    "name": "市立醫院陽明院區",
-    "dean": "邱逸淳",
-    "dept": "泌尿",
-    "district": "",
-    "img": "https://i.ibb.co/QjTKGL6s/image.png"
-  },
-  {
-    "city": "台北市",
-    "level": "區域醫院",
-    "name": "市立醫院和平婦幼院區",
-    "dean": "許家禎",
-    "dept": "ENT",
-    "district": "",
-    "img": "https://i.ibb.co/KzVQw0Y7/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "區域醫院",
-    "name": "市立醫院忠孝院區",
-    "dean": "陳修聖",
-    "dept": "泌尿",
-    "district": "",
-    "img": "https://i.ibb.co/Q3Q3r1zk/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "區域醫院",
-    "name": "市立醫院仁愛院區",
-    "dean": "王懋哲",
-    "dept": "ENT",
-    "district": "",
-    "img": "https://i.ibb.co/MxsMXxVC/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "區域醫院",
-    "name": "振興醫院",
-    "dean": "魏崢",
-    "dept": "心臟外科",
-    "district": "北投區",
-    "img": "https://i.ibb.co/FkVX7Vqw/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "區域醫院",
-    "name": "臺北長庚紀念醫院",
-    "dean": "黃集仁",
-    "dept": "急診科",
-    "district": "松山區",
-    "img": "https://i.ibb.co/r2ZdBm1c/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "區域醫院",
-    "name": "臺北醫學大學臺北癌症醫院",
-    "dean": "張俊彥",
-    "dept": "血腫科",
-    "district": "信義區",
-    "img": "https://i.ibb.co/whSZypZ0/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "區域醫院",
-    "name": "康寧醫院",
-    "dean": "尹長生",
-    "dept": "婦產科",
-    "district": "內湖區",
-    "img": "https://i.ibb.co/TBDwp0nK/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "區域醫院",
-    "name": "西園醫院",
-    "dean": "林澤安",
-    "dept": "內科",
-    "district": "萬華區",
-    "img": "https://i.ibb.co/HWq3hmV/image.jpg"
-  },
-  {
-    "city": "台北市",
-    "level": "區域醫院",
-    "name": "台安醫院",
-    "dean": "陳欣宏",
-    "dept": "泌尿",
-    "district": "大安區",
-    "img": "https://i.ibb.co/1YBVxp5v/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "醫學中心",
-    "name": "亞東紀念醫院",
-    "dean": "邱冠明",
-    "dept": "心臟外科",
-    "district": "板橋區",
-    "img": "https://i.ibb.co/b5QrdWFv/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "醫學中心",
-    "name": "臺北慈濟醫院",
-    "dean": "趙有誠",
-    "dept": "腸胃科",
-    "district": "新店區",
-    "img": "https://i.ibb.co/3mr2tmHS/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "醫學中心",
-    "name": "衛生福利部雙和醫院",
-    "dean": "李明哲",
-    "dept": "心臟外科",
-    "district": "中和區",
-    "img": "https://i.ibb.co/MkXYsxtD/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "醫學中心",
-    "name": "輔仁大學附設醫院",
-    "dean": "黃瑞仁",
-    "dept": "心臟科",
-    "district": "泰山區",
-    "img": "https://i.ibb.co/MDypzk2Z/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "區域醫院",
-    "name": "恩主公醫院",
-    "dean": "楊純豪",
-    "dept": "大腸外科",
-    "district": "三峽區",
-    "img": "https://i.ibb.co/5QRdCGK/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "區域醫院",
-    "name": "衛生福利部臺北醫院",
-    "dean": "鄭舜平",
-    "dept": "復健",
-    "district": "新莊區",
-    "img": "https://i.ibb.co/BHqTvv9Z/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "區域醫院",
-    "name": "新北市立聯合醫院",
-    "dean": "項正川",
-    "dept": "腎臟",
-    "district": "三重/板橋",
-    "img": "https://i.ibb.co/nq24rbHz/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "區域醫院",
-    "name": "耕莘醫院總院長",
-    "dean": "林恆毅",
-    "dept": "胸腔內科",
-    "district": "",
-    "img": "https://i.ibb.co/6cQk2MDX/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "區域醫院",
-    "name": "新店耕莘醫院",
-    "dean": "鄒繼群",
-    "dept": "耳鼻喉科",
-    "district": "新店",
-    "img": "https://i.ibb.co/zyTm6dd/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "區域醫院",
-    "name": "永和耕莘醫院",
-    "dean": "趙嘉倫",
-    "dept": "心臟科",
-    "district": "永和區",
-    "img": "https://i.ibb.co/VWmT0FVx/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "區域醫院",
-    "name": "安康耕莘醫院",
-    "dean": "周少鈞",
-    "dept": "一般外科",
-    "district": "安康",
-    "img": "https://i.ibb.co/hFfK6wHC/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "區域醫院",
-    "name": "土城長庚",
-    "dean": "賴旗俊",
-    "dept": "眼科",
-    "district": "土城",
-    "img": "https://i.ibb.co/N6R9XT1M/image.jpg"
-  },
-  {
-    "city": "新北市",
-    "level": "區域醫院",
-    "name": "八里療養院",
-    "dean": "李新民",
-    "dept": "精神科",
-    "district": "八里",
-    "img": "https://i.ibb.co/G4VKJLjm/image.png"
-  },
-  {
-    "city": "基隆市",
-    "level": "區域醫院",
-    "name": "基隆長庚紀念醫院",
-    "dean": "吳俊德",
-    "dept": "泌尿科",
-    "district": "安樂區",
-    "img": "https://i.ibb.co/STHyHnj/image.jpg"
-  },
-  {
-    "city": "基隆市",
-    "level": "區域醫院",
-    "name": "衛生福利部基隆醫院",
-    "dean": "林三齊",
-    "dept": "腎臟",
-    "district": "信義區",
-    "img": "https://i.ibb.co/S7QFGPK0/image.jpg"
-  },
-  {
-    "city": "宜蘭縣",
-    "level": "區域醫院",
-    "name": "國立陽明交通大學附設醫院",
-    "dean": "黃志賢",
-    "dept": "泌尿科",
-    "district": "宜蘭市",
-    "img": "https://i.ibb.co/qFVQmNYb/image.jpg"
-  },
-  {
-    "city": "宜蘭縣",
-    "level": "區域醫院",
-    "name": "羅東博愛醫院",
-    "dean": "王文斌",
-    "dept": "神經外科",
-    "district": "羅東鎮",
-    "img": "https://i.ibb.co/g1MDnxZ/image.jpg"
-  },
-  {
-    "city": "宜蘭縣",
-    "level": "區域醫院",
-    "name": "羅東聖母醫院",
-    "dean": "馬漢光",
-    "dept": "胸腔內科",
-    "district": "羅東鎮",
-    "img": "https://i.ibb.co/xSnSrym5/image.jpg"
-  }
-];
+    <!-- Tailwind CSS (樣式框架) -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-const HospitalCard = ({ data }) => {
-  return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-200 flex flex-col h-full group animate-in fade-in zoom-in duration-500">
-      {/* 調整：手機版 header 高度與 padding 縮小，節省空間 */}
-      <div className="bg-slate-800 p-3 md:p-4 text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[4.5rem] md:min-h-[5rem]">
-        <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
-        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 duration-700"></div>
-        
-        {/* 調整：手機版字體調整為 text-base，避免過大 */}
-        <h3 className="text-base md:text-xl font-bold text-white tracking-wide relative z-10 group-hover:text-blue-200 transition-colors line-clamp-2 w-full px-1 leading-tight">
-          {data.name}
-        </h3>
-        <span className="inline-block mt-1.5 md:mt-2 px-2.5 py-0.5 bg-slate-700 text-blue-200 text-[10px] md:text-xs rounded-full border border-slate-600">
-          {data.level}
-        </span>
-      </div>
+    <!-- Alpine.js (互動邏輯框架) -->
+    <script src="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js" defer></script>
 
-      {/* 調整：手機版圖片高度縮減為 h-40，增加內容可見度 */}
-      <div className="relative h-40 md:h-52 w-full bg-slate-100 overflow-hidden">
-        <img 
-          src={data.img} 
-          alt={data.dean}
-          className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
-          onError={(e) => {
-            e.target.src = "https://placehold.co/600x400?text=No+Image";
-            e.target.onerror = null;
-          }}
-        />
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/90 via-slate-900/50 to-transparent p-2 md:p-3 pt-8 md:pt-10">
-          <p className="text-white text-xs md:text-sm font-medium flex items-center gap-1.5 drop-shadow-md">
-            <MapPin size={14} className="text-blue-400 shrink-0" />
-            <span>{data.city} {data.district}</span>
-          </p>
-        </div>
-      </div>
+    <!-- Google Fonts (字型) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
-      <div className="p-3 md:p-4 flex-grow bg-slate-50 flex flex-col justify-center">
-        <div className="flex items-center gap-3 md:gap-4 mb-3 md:mb-4 pb-3 md:pb-4 border-b border-slate-200">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-sm border border-slate-100 shrink-0 group-hover:scale-110 transition-transform duration-300">
-             <User size={20} className="md:w-6 md:h-6" />
-          </div>
-          <div>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-0.5">現任院長</p>
-            <h4 className="text-base md:text-lg font-bold text-slate-800">{data.dean}</h4>
-          </div>
-        </div>
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        [x-cloak] { display: none !important; }
+        .hospital-card:hover { transform: translateY(-4px); }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col" x-data="hospitalApp()">
 
-        <div className="space-y-2">
-          <div className="flex items-center gap-3 p-2 md:p-2.5 bg-white rounded-lg border border-slate-200 shadow-sm hover:border-blue-300 transition-colors group-hover:shadow-md">
-            <Stethoscope size={16} className="text-emerald-600 shrink-0 md:w-[18px] md:h-[18px]" />
-            <div className="flex flex-col">
-              <span className="text-[10px] text-slate-400 font-medium">專長科別</span>
-              <span className="text-sm font-medium text-slate-700 line-clamp-1">{data.dept}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default function App() {
-  const [data, setData] = useState(FULL_DATA);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCity, setSelectedCity] = useState("全部");
-  const [selectedLevel, setSelectedLevel] = useState("全部");
-  const fileInputRef = useRef(null);
-
-  const cities = ["全部", ...new Set(data.map(d => d.city))];
-  const levels = ["全部", ...new Set(data.map(d => d.level))];
-
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target.result;
-      const lines = text.split('\n');
-      const parsedData = [];
-      let startParsing = false;
-
-      lines.forEach(line => {
-        const trimmedLine = line.trim();
-        if (!trimmedLine) return;
-        const columns = trimmedLine.split(',');
-        
-        if (trimmedLine.includes('縣市') && trimmedLine.includes('醫院名稱')) {
-          startParsing = true;
-          return;
-        }
-
-        if (!startParsing) {
-            const potentialCity = columns[0];
-            if (['台北市', '新北市', '基隆市', '桃園市', '宜蘭縣', '新竹市', '新竹縣'].some(c => potentialCity.includes(c))) {
-                startParsing = true;
-            } else {
-                return;
-            }
-        }
-
-        if (columns.length >= 7) {
-          parsedData.push({
-            city: columns[0].trim(),
-            level: columns[1].trim(),
-            name: columns[2].trim(),
-            dean: columns[3].trim(),
-            dept: columns[4].trim(),
-            district: columns[5].trim(),
-            img: columns[6].trim()
-          });
-        }
-      });
-
-      if (parsedData.length > 0) {
-        setData(parsedData);
-        setSelectedCity("全部");
-        setSelectedLevel("全部");
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        alert(`成功更新 ${parsedData.length} 筆資料！`);
-      } else {
-        alert("無法解析資料，請確認 CSV 格式是否正確。");
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const filteredData = useMemo(() => {
-    return data.filter(item => {
-      const matchesSearch = 
-        item.name.includes(searchTerm) || 
-        item.dean.includes(searchTerm) ||
-        item.district.includes(searchTerm);
-      const matchesCity = selectedCity === "全部" || item.city === selectedCity;
-      const matchesLevel = selectedLevel === "全部" || item.level === selectedLevel;
-
-      return matchesSearch && matchesCity && matchesLevel;
-    });
-  }, [data, searchTerm, selectedCity, selectedLevel]);
-
-  return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
-      <style>{`
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleFileUpload} 
-        accept=".csv" 
-        className="hidden" 
-      />
-
-      <header className="bg-slate-900 text-white shadow-xl sticky top-0 z-50 border-b border-slate-700">
-        <div className="max-w-7xl mx-auto px-3 md:px-4 py-2 md:py-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4">
-            
-            <div className="flex-shrink-0">
-              <h1 className="text-lg md:text-2xl font-bold tracking-tight flex items-center gap-2 md:gap-3">
-                <div className="p-1.5 bg-blue-600 rounded-lg shadow-lg shadow-blue-900/50">
-                  <Building className="text-white" size={18} />
+    <!-- 頁首 Header -->
+    <header class="bg-blue-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
                 </div>
-                <span>北區醫院院長名錄</span>
-              </h1>
-              <div className="flex items-center gap-2 mt-1 md:mt-2 ml-1 text-slate-400 text-xs md:text-sm">
-                <span className="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-full text-emerald-300 flex items-center gap-1">
-                   <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-                   完整資料
-                </span>
-                <span className="text-slate-400">
-                   {filteredData.length} 間
-                </span>
-              </div>
+                <h1 class="text-xl md:text-2xl font-bold tracking-wide">北區醫院院長名錄</h1>
             </div>
-            
-            <div className="flex gap-2 w-full md:w-auto">
-                <div className="relative w-full md:w-64 group">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-blue-400 transition-colors" size={16} />
-                    <input 
-                      type="text"
-                      placeholder="搜尋醫院、院長..."
-                      className="w-full pl-9 pr-4 py-2 md:py-2.5 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    {searchTerm && (
-                      <button 
-                        onClick={() => setSearchTerm("")}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-white"
-                      >
-                        <X size={14} />
-                      </button>
-                    )}
+            <div class="text-xs md:text-sm bg-blue-700 px-3 py-1 rounded-full opacity-90 hidden sm:block">
+                資料更新：2024
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要內容 Main -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        
+        <!-- 搜尋與篩選工具列 -->
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 transition-all hover:shadow-md">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                
+                <!-- 關鍵字搜尋 -->
+                <div class="md:col-span-6 lg:col-span-5 relative">
+                    <label class="block text-sm font-bold text-gray-600 mb-2">搜尋醫院或院長</label>
+                    <div class="relative">
+                        <input type="text" x-model="searchQuery" placeholder="輸入關鍵字..." 
+                               class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
+                        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <button x-show="searchQuery" @click="searchQuery = ''" class="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
-                <button 
-                  onClick={() => fileInputRef.current.click()}
-                  className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 md:py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-lg transition-all shadow-md active:scale-95 text-sm font-medium whitespace-nowrap border border-slate-600"
-                  title="若有新版 CSV 可由此更新"
-                >
-                    <Upload size={16} />
-                    <span className="hidden sm:inline">更新資料</span>
+                <!-- 縣市篩選 -->
+                <div class="md:col-span-3 lg:col-span-3">
+                    <label class="block text-sm font-bold text-gray-600 mb-2">地區</label>
+                    <div class="relative">
+                        <select x-model="selectedCity" class="w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer">
+                            <option value="">所有縣市</option>
+                            <template x-for="city in cities" :key="city">
+                                <option :value="city" x-text="city"></option>
+                            </template>
+                        </select>
+                        <div class="absolute right-3 top-3.5 pointer-events-none text-gray-500">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 醫院等級篩選 -->
+                <div class="md:col-span-3 lg:col-span-4">
+                    <label class="block text-sm font-bold text-gray-600 mb-2">醫院等級</label>
+                    <div class="relative">
+                        <select x-model="selectedLevel" class="w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer">
+                            <option value="">所有等級</option>
+                            <template x-for="level in levels" :key="level">
+                                <option :value="level" x-text="level"></option>
+                            </template>
+                        </select>
+                        <div class="absolute right-3 top-3.5 pointer-events-none text-gray-500">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 篩選統計與重置 -->
+            <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center text-sm">
+                <span class="text-gray-500">
+                    共找到 <span class="font-bold text-blue-600 text-lg mx-1" x-text="filteredHospitals.length"></span> 筆資料
+                </span>
+                <button x-show="hasFilters" @click="resetFilters" x-transition 
+                        class="text-red-500 hover:text-red-700 font-medium flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    清除篩選
                 </button>
             </div>
-          </div>
+        </section>
+
+        <!-- 醫院卡片列表 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <template x-for="item in filteredHospitals" :key="item['醫院名稱']">
+                <div class="hospital-card bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 transition-all duration-300 flex flex-col h-full group">
+                    
+                    <!-- 圖片區塊 -->
+                    <div class="aspect-[4/3] bg-gray-200 relative overflow-hidden">
+                        <img :src="item['相片']" 
+                             :alt="item['現任院長']"
+                             loading="lazy"
+                             class="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-110"
+                             onerror="this.onerror=null; this.src='https://placehold.co/600x400/e2e8f0/94a3b8?text=暫無圖片';">
+                        
+                        <!-- 標籤 -->
+                        <div class="absolute top-3 right-3 flex flex-col items-end gap-1">
+                            <span class="bg-blue-600/90 text-white text-xs font-bold px-2 py-1 rounded-lg backdrop-blur-sm shadow-sm" x-text="item['等級']"></span>
+                        </div>
+                        
+                        <!-- 底部漸層 (讓文字更清楚) -->
+                        <div class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent"></div>
+                        <div class="absolute bottom-3 left-4 text-white">
+                            <p class="text-xs font-medium opacity-90" x-text="item['所在行政區'] ? item['縣市'] + ' · ' + item['所在行政區'] : item['縣市']"></p>
+                        </div>
+                    </div>
+
+                    <!-- 內容區塊 -->
+                    <div class="p-5 flex-1 flex flex-col">
+                        <h3 class="text-lg font-bold text-gray-900 leading-tight mb-3 group-hover:text-blue-600 transition-colors" x-text="item['醫院名稱']"></h3>
+                        
+                        <div class="mt-auto pt-4 border-t border-gray-100 grid grid-cols-2 gap-2">
+                            <div>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-wider font-bold">現任院長</p>
+                                <p class="text-base font-bold text-gray-800" x-text="item['現任院長']"></p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] text-gray-400 uppercase tracking-wider font-bold">專長科別</p>
+                                <span class="inline-block bg-green-50 text-green-700 text-xs px-2 py-1 rounded-md font-medium border border-green-100 mt-0.5" x-text="item['科別']"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
         </div>
 
-        <div className="bg-slate-800/95 backdrop-blur-md border-t border-white/5 shadow-md">
-           <div className="max-w-7xl mx-auto px-3 md:px-4 py-2 overflow-x-auto no-scrollbar flex items-center gap-2 md:gap-3">
-             <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium whitespace-nowrap">
-               <Filter size={14} />
-               篩選
-             </div>
-             
-             <select 
-               className="bg-slate-700 text-white border border-slate-600 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 py-1.5 px-2 md:px-3 outline-none hover:bg-slate-600 transition-colors cursor-pointer min-w-[5rem] md:min-w-[6rem]"
-               value={selectedCity}
-               onChange={(e) => setSelectedCity(e.target.value)}
-             >
-               {cities.map(city => (
-                 <option key={city} value={city}>{city === "全部" ? "所有縣市" : city}</option>
-               ))}
-             </select>
-
-             <select 
-               className="bg-slate-700 text-white border border-slate-600 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 py-1.5 px-2 md:px-3 outline-none hover:bg-slate-600 transition-colors cursor-pointer min-w-[5rem] md:min-w-[6rem]"
-               value={selectedLevel}
-               onChange={(e) => setSelectedLevel(e.target.value)}
-             >
-               {levels.map(level => (
-                 <option key={level} value={level}>{level === "全部" ? "所有等級" : level}</option>
-               ))}
-             </select>
-             
-             {(selectedCity !== "全部" || selectedLevel !== "全部") && (
-                <button 
-                  onClick={() => {
-                    setSelectedCity("全部");
-                    setSelectedLevel("全部");
-                  }}
-                  className="text-xs text-blue-300 hover:text-white hover:underline whitespace-nowrap px-2"
-                >
-                  重置
-                </button>
-             )}
-           </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-6">
-        {filteredData.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-            {filteredData.map((item, index) => (
-              <HospitalCard key={index} data={item} />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-slate-400 text-center">
-            <div className="bg-slate-200 p-5 rounded-full mb-4">
-               <Building size={40} className="text-slate-400" />
+        <!-- 無結果顯示 -->
+        <div x-show="filteredHospitals.length === 0" x-cloak class="text-center py-20">
+            <div class="inline-block p-4 rounded-full bg-gray-100 mb-4">
+                <svg class="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
             </div>
-            <h3 className="text-lg font-bold text-slate-600 mb-2">沒有找到符合的結果</h3>
-            <button 
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedCity("全部");
-                setSelectedLevel("全部");
-              }}
-              className="mt-2 text-blue-600 hover:underline text-sm"
-            >
-              清除所有篩選條件
+            <h3 class="text-lg font-medium text-gray-900">沒有找到符合的資料</h3>
+            <p class="text-gray-500 mt-1">請嘗試使用其他關鍵字或調整篩選條件</p>
+            <button @click="resetFilters" class="mt-6 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-lg shadow-blue-600/30 font-medium">
+                清除所有篩選
             </button>
-          </div>
-        )}
-      </main>
-    </div>
-  );
-}
+        </div>
+
+    </main>
+
+    <!-- 頁尾 Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-auto">
+        <div class="container mx-auto px-4 py-8 text-center">
+            <p class="text-gray-600 font-medium">北區醫院院長名錄 App</p>
+            <p class="text-xs text-gray-400 mt-2">© 2024 資料來源：公開資料整理</p>
+        </div>
+    </footer>
+
+    <!-- App 邏輯與資料 -->
+    <script>
+        // 將處理過後的 CSV 資料直接嵌入為 JSON，確保部署時不會有讀取問題
+        const HOSPITAL_DATA = [{"縣市": "台北市", "等級": "醫學中心", "醫院名稱": "國立臺灣大學醫學院附設醫院", "現任院長": "余忠仁", "科別": "胸腔內科", "所在行政區": "中正區", "相片": "https://i.ibb.co/mVFTNYz9/image.png"}, {"縣市": "台北市", "等級": "醫學中心", "醫院名稱": "臺北榮民總醫院", "現任院長": "陳威明", "科別": "骨科", "所在行政區": "北投區", "相片": "https://i.ibb.co/Wv82TMfr/image.jpg"}, {"縣市": "台北市", "等級": "醫學中心", "醫院名稱": "三軍總醫院附設民眾診療服務處", "現任院長": "蔡宜廷", "科別": "心臟外科", "所在行政區": "內湖區", "相片": "https://i.ibb.co/zhC6rdWw/image.jpg"}, {"縣市": "基隆市", "等級": "區域醫院", "醫院名稱": "三軍總醫院基隆分院", "現任院長": "陳元皓", "科別": "神經外科", "所在行政區": "中正區", "相片": "https://i.ibb.co/fzV0mGsm/image.jpg"}, {"縣市": "台北市", "等級": "區域醫院", "醫院名稱": "三軍總醫院松山分院", "現任院長": "許育瑞", "科別": "腎臟科", "所在行政區": "松山區", "相片": "https://i.ibb.co/V0LW69Vw/image.jpg"}, {"縣市": "台北市", "等級": "醫學中心", "醫院名稱": "馬偕紀念醫院", "現任院長": "張文瀚", "科別": "急診科", "所在行政區": "中山區", "相片": "https://i.ibb.co/4RB6jrPw/image.jpg"}, {"縣市": "新北市", "等級": "區域醫院", "醫院名稱": "淡水馬偕紀念醫院", "現任院長": "洪大川", "科別": "心臟科", "所在行政區": "淡水區", "相片": "https://i.ibb.co/1fYm2wdv/image.jpg"}, {"縣市": "台北市", "等級": "醫學中心", "醫院名稱": "國泰綜合醫院", "現任院長": "簡志誠", "科別": "麻醉疼痛", "所在行政區": "大安區", "相片": "https://i.ibb.co/p6WC1TtW/image.jpg"}, {"縣市": "新北市", "等級": "區域醫院", "醫院名稱": "汐止國泰綜合醫院", "現任院長": "林慶齡", "科別": "代謝科", "所在行政區": "汐止區", "相片": "https://i.ibb.co/WNHRrW1c/image.jpg"}, {"縣市": "台北市", "等級": "醫學中心", "醫院名稱": "新光吳火獅紀念醫院", "現任院長": "侯勝茂", "科別": "骨科", "所在行政區": "士林區", "相片": "https://i.ibb.co/p6kzF3zP/image.jpg"}, {"縣市": "台北市", "等級": "醫學中心", "醫院名稱": "臺北醫學大學附設醫院", "現任院長": "施俊明", "科別": "心臟科", "所在行政區": "信義區", "相片": "https://i.ibb.co/DSMRwcn/image.jpg"}, {"縣市": "台北市", "等級": "醫學中心", "醫院名稱": "臺北市立萬芳醫院", "現任院長": "劉燦宏", "科別": "復健", "所在行政區": "文山區", "相片": "https://i.ibb.co/VYgGM0LH/image.jpg"}, {"縣市": "台北市", "等級": "區域醫院", "醫院名稱": "和信治癌中心醫院", "現任院長": "黃達夫", "科別": "腫瘤", "所在行政區": "關渡", "相片": "https://i.ibb.co/LhdyYyjx/image.jpg"}, {"縣市": "台北市", "等級": "區域醫院", "醫院名稱": "臺北市立聯合醫院", "現任院長": "王智弘", "科別": "耳鼻喉科 ", "所在行政區": "各院區", "相片": "https://i.ibb.co/TMX2C2yw/image.png"}, {"縣市": "台北市", "等級": "區域醫院", "醫院名稱": "市立醫院中興院區", "現任院長": "蔡景耀", "科別": "眼科", "所在行政區": "", "相片": "https://i.ibb.co/qF5V6yjg/image.jpg"}, {"縣市": "台北市", "等級": "區域醫院", "醫院名稱": "市立醫院陽明院區", "現任院長": "邱逸淳", "科別": "泌尿", "所在行政區": "", "相片": "https://i.ibb.co/QjTKGL6s/image.png"}, {"縣市": "台北市", "等級": "區域醫院", "醫院名稱": "市立醫院和平婦幼院區", "現任院長": "許家禎", "科別": "ENT", "所在行政區": "", "相片": "https://i.ibb.co/KzVQw0Y7/image.jpg"}, {"縣市": "台北市", "等級": "區域醫院", "醫院名稱": "市立醫院忠孝院區", "現任院長": "陳修聖", "科別": "泌尿", "所在行政區": "", "相片": "https://i.ibb.co/Q3Q3r1zk/image.jpg"}, {"縣市": "台北市", "等級": "區域醫院", "醫院名稱": "市立醫院仁愛院區", "現任院長": "王懋哲", "科別": "ENT", "所在行政區": "", "相片": "https://i.ibb.co/MxsMXxVC/image.jpg"}, {"縣市": "台北市", "等級": "區域醫院", "醫院名稱": "振興醫院", "現任院長": "魏崢", "科別": "心臟外科", "所在行政區": "北投區", "相片": "https://i.ibb.co/FkVX7Vqw/image.jpg"}, {"縣市": "台北市", "等級": "區域醫院", "醫院名稱": "臺北長庚紀念醫院", "現任院長": "黃集仁", "科別": "急診科", "所在行政區": "松山區", "相片": "https://i.ibb.co/r2ZdBm1c/image.jpg"}, {"縣市": "台北市", "等級": "區域醫院", "醫院名稱": "臺北醫學大學臺北癌症醫院", "現任院長": "張俊彥", "科別": "血腫科", "所在行政區": "信義區", "相片": "https://i.ibb.co/whSZypZ0/image.jpg"}, {"縣市": "台北市", "等級": "區域醫院", "醫院名稱": "康寧醫院", "現任院長": "尹長生", "科別": "婦產科", "所在行政區": "內湖區", "相片": "https://i.ibb.co/TBDwp0nK/image.jpg"}, {"縣市": "台北市", "等級": "區域醫院", "醫院名稱": "西園醫院", "現任院長": "林澤安", "科別": "內科", "所在行政區": "萬華區", "相片": "https://i.ibb.co/HWq3hmV/image.jpg"}, {"縣市": "台北市", "等級": "區域醫院", "醫院名稱": "台安醫院", "現任院長": "陳欣宏", "科別": "泌尿", "所在行政區": "大安區", "相片": "https://i.ibb.co/1YBVxp5v/image.jpg"}, {"縣市": "新北市", "等級": "醫學中心", "醫院名稱": "亞東紀念醫院", "現任院長": "邱冠明", "科別": "心臟外科", "所在行政區": "板橋區", "相片": "https://i.ibb.co/b5QrdWFv/image.jpg"}, {"縣市": "新北市", "等級": "醫學中心", "醫院名稱": "臺北慈濟醫院", "現任院長": "趙有誠", "科別": "腸胃科", "所在行政區": "新店區", "相片": "https://i.ibb.co/3mr2tmHS/image.jpg"}, {"縣市": "新北市", "等級": "醫學中心", "醫院名稱": "衛生福利部雙和醫院", "現任院長": "李明哲", "科別": "心臟外科", "所在行政區": "中和區", "相片": "https://i.ibb.co/MkXYsxtD/image.jpg"}, {"縣市": "新北市", "等級": "醫學中心", "醫院名稱": "輔仁大學附設醫院", "現任院長": "黃瑞仁", "科別": "心臟科", "所在行政區": "泰山區", "相片": "https://i.ibb.co/MDypzk2Z/image.jpg"}, {"縣市": "新北市", "等級": "區域醫院", "醫院名稱": "恩主公醫院", "現任院長": "楊純豪", "科別": "大腸外科", "所在行政區": "三峽區", "相片": "https://i.ibb.co/5QRdCGK/image.jpg"}, {"縣市": "新北市", "等級": "區域醫院", "醫院名稱": "衛生福利部臺北醫院", "現任院長": "鄭舜平", "科別": "復健", "所在行政區": "新莊區", "相片": "https://i.ibb.co/BHqTvv9Z/image.jpg"}, {"縣市": "新北市", "等級": "區域醫院", "醫院名稱": "新北市立聯合醫院", "現任院長": "項正川", "科別": "腎臟", "所在行政區": "三重/板橋", "相片": "https://i.ibb.co/nq24rbHz/image.jpg"}, {"縣市": "新北市", "等級": "區域醫院", "醫院名稱": "耕莘醫院總院長", "現任院長": "林恆毅", "科別": "胸腔內科", "所在行政區": "", "相片": "https://i.ibb.co/6cQk2MDX/image.jpg"}, {"縣市": "新北市", "等級": "區域醫院", "醫院名稱": "新店耕莘醫院", "現任院長": "鄒繼群", "科別": "耳鼻喉科 ", "所在行政區": "新店", "相片": "https://i.ibb.co/zyTm6dd/image.jpg"}, {"縣市": "新北市", "等級": "區域醫院", "醫院名稱": "永和耕莘醫院", "現任院長": "趙嘉倫", "科別": "心臟科", "所在行政區": "永和區", "相片": "https://i.ibb.co/VWmT0FVx/image.jpg"}, {"縣市": "新北市", "等級": "區域醫院", "醫院名稱": "安康耕莘醫院", "現任院長": "周少鈞", "科別": "一般外科", "所在行政區": "安康", "相片": "https://i.ibb.co/hFfK6wHC/image.jpg"}, {"縣市": "新北市", "等級": "區域醫院", "醫院名稱": "土城長庚", "現任院長": "賴旗俊", "科別": "眼科", "所在行政區": "土城", "相片": "https://i.ibb.co/N6R9XT1M/image.jpg"}, {"縣市": "新北市", "等級": "區域醫院", "醫院名稱": "八里療養院", "現任院長": "李新民", "科別": "精神科", "所在行政區": "八里", "相片": "https://i.ibb.co/G4VKJLjm/image.png"}, {"縣市": "基隆市", "等級": "區域醫院", "醫院名稱": "基隆長庚紀念醫院", "現任院長": "吳俊德", "科別": "泌尿科", "所在行政區": "安樂區", "相片": "https://i.ibb.co/STHyHnj/image.jpg"}, {"縣市": "基隆市", "等級": "區域醫院", "醫院名稱": "衛生福利部基隆醫院", "現任院長": "林三齊", "科別": "腎臟", "所在行政區": "信義區", "相片": "https://i.ibb.co/S7QFGPK0/image.jpg"}, {"縣市": "宜蘭縣", "等級": "區域醫院", "醫院名稱": "國立陽明交通大學附設醫院", "現任院長": "黃志賢", "科別": "泌尿科", "所在行政區": "宜蘭市", "相片": "https://i.ibb.co/qFVQmNYb/image.jpg"}, {"縣市": "宜蘭縣", "等級": "區域醫院", "醫院名稱": "羅東博愛醫院", "現任院長": "王文斌", "科別": "神經外科", "所在行政區": "羅東鎮", "相片": "https://i.ibb.co/g1MDnxZ/image.jpg"}, {"縣市": "宜蘭縣", "等級": "區域醫院", "醫院名稱": "羅東聖母醫院", "現任院長": "馬漢光", "科別": "胸腔內科", "所在行政區": "羅東鎮", "相片": "https://i.ibb.co/xSnSrym5/image.jpg"}];
+
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('hospitalApp', () => ({
+                searchQuery: '',
+                selectedCity: '',
+                selectedLevel: '',
+                hospitals: HOSPITAL_DATA,
+
+                // 計算屬性：篩選後的結果
+                get filteredHospitals() {
+                    return this.hospitals.filter(item => {
+                        // 1. 搜尋邏輯
+                        const query = this.searchQuery.toLowerCase().trim();
+                        const inName = (item['醫院名稱'] || '').toLowerCase().includes(query);
+                        const inDean = (item['現任院長'] || '').toLowerCase().includes(query);
+                        const inDept = (item['科別'] || '').toLowerCase().includes(query);
+                        const searchMatch = query === '' || inName || inDean || inDept;
+
+                        // 2. 縣市篩選
+                        const cityMatch = this.selectedCity === '' || item['縣市'] === this.selectedCity;
+
+                        // 3. 等級篩選
+                        const levelMatch = this.selectedLevel === '' || item['等級'] === this.selectedLevel;
+
+                        return searchMatch && cityMatch && levelMatch;
+                    });
+                },
+
+                // 取得不重複的縣市列表
+                get cities() {
+                    const list = this.hospitals.map(h => h['縣市']).filter(Boolean);
+                    return [...new Set(list)];
+                },
+
+                // 取得不重複的等級列表
+                get levels() {
+                    const list = this.hospitals.map(h => h['等級']).filter(Boolean);
+                    return [...new Set(list)];
+                },
+
+                // 是否有啟用篩選
+                get hasFilters() {
+                    return this.searchQuery !== '' || this.selectedCity !== '' || this.selectedLevel !== '';
+                },
+
+                // 重置所有條件
+                resetFilters() {
+                    this.searchQuery = '';
+                    this.selectedCity = '';
+                    this.selectedLevel = '';
+                }
+            }));
+        });
+    </script>
+</body>
+</html>
